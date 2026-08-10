@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { lazy, Suspense, useState } from 'react'
 import { Navigate, Outlet, Route, Routes, useParams } from 'react-router-dom'
 import {
   CurrentAccountProvider,
@@ -30,6 +30,10 @@ import {
   previewSession,
 } from './preview/data'
 import styles from './App.module.scss'
+
+const AdminPage = lazy(() =>
+  import('@/pages/admin').then((module) => ({ default: module.AdminPage })),
+)
 
 function LoadingScreen() {
   return <div className={styles.splash}>Загружаем тренажёр безопасности…</div>
@@ -63,7 +67,22 @@ function AuthOnly({ mode }: { mode: 'login' | 'register' }) {
 
   if (isLoading) return <LoadingScreen />
 
-  return account ? <Navigate to="/dashboard" replace /> : <AuthPage mode={mode} />
+  return account ? (
+    <Navigate to={account.accessRole === 'admin' ? '/admin' : '/dashboard'} replace />
+  ) : (
+    <AuthPage mode={mode} />
+  )
+}
+
+function AdminOnly() {
+  const { account } = useCurrentAccount()
+  return account.accessRole === 'admin' ? (
+    <Suspense fallback={<LoadingScreen />}>
+      <AdminPage />
+    </Suspense>
+  ) : (
+    <Navigate to="/dashboard" replace />
+  )
 }
 
 function PreviewLayout() {
@@ -182,6 +201,7 @@ export function App() {
       <Route path="/preview" element={<Navigate to="/preview/dashboard" replace />} />
 
       <Route element={<ProtectedLayout />}>
+        <Route path="/admin" element={<AdminOnly />} />
         <Route path="/dashboard" element={<DashboardPage />} />
         <Route path="/lessons" element={<LessonsPage />} />
         <Route path="/lessons/:lessonId" element={<TheoryPage />} />
