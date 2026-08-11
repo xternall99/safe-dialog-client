@@ -1,0 +1,15 @@
+.env
+.env.*
+!.env.example
+!.example.env
+
+out/
+node_modules/
+dist/
+coverage/
+.vscode/
+*.log
+.DS_Store
+frontend/test-results/
+frontend/playwright-report/
+frontend/.vite/
