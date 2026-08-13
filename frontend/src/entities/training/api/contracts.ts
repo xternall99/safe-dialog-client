@@ -10,12 +10,20 @@ export interface LevelStateDto {
   number: number
   opened: boolean
   scenario_id: number
+  scenario_title: string
+  scenario_description: string
+  response_type: ResponseModeDto
+  in_progress_attempt_id?: number
 }
 
 export const levelStateDtoSchema = z.object({
   number: z.number().int().min(1).max(4),
   opened: z.boolean(),
   scenario_id: z.number().int(),
+  scenario_title: z.string(),
+  scenario_description: z.string(),
+  response_type: z.enum(['multiple_choice', 'similar_choice', 'mixed', 'free_text']),
+  in_progress_attempt_id: z.number().int().positive().optional(),
 })
 
 export interface GameStateDto {

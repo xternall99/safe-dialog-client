@@ -8,6 +8,10 @@ export interface LevelState {
   number: number
   isOpened: boolean
   scenarioId: number
+  scenarioTitle: string
+  scenarioDescription: string
+  responseMode: ResponseMode
+  inProgressAttemptId?: number
 }
 
 export interface TrainingMessage {

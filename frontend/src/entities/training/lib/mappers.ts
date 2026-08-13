@@ -3,7 +3,15 @@ import type { AttemptResult, LevelState, TrainingSession } from '../model/types'
 import { mapStreak } from '@/entities/user'
 
 export function mapLevelState(dto: LevelStateDto): LevelState {
-  return { number: dto.number, isOpened: dto.opened, scenarioId: dto.scenario_id }
+  return {
+    number: dto.number,
+    isOpened: dto.opened,
+    scenarioId: dto.scenario_id,
+    scenarioTitle: dto.scenario_title,
+    scenarioDescription: dto.scenario_description,
+    responseMode: dto.response_type,
+    inProgressAttemptId: dto.in_progress_attempt_id,
+  }
 }
 
 export function mapTrainingSession(dto: GameStateDto): TrainingSession {

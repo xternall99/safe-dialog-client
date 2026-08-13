@@ -19,6 +19,7 @@ import {
   createPreviewDashboard,
   createPreviewProgress,
   createPreviewTheory,
+  createPreviewTrainingTopics,
   createPreviewTopics,
   previewAccount,
   previewAchievements,
@@ -152,7 +153,7 @@ function PreviewTrainingRoute() {
   return (
     <TrainingPage
       preview={{
-        topics: createPreviewTopics(account.trainingRole),
+        topics: createPreviewTrainingTopics(account.trainingRole),
         levels: previewLevels,
         session: previewSession,
         result: previewResult,

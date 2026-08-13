@@ -47,7 +47,7 @@ export function QuizPanel({ quiz, isSubmitting, onSubmit, onPassed }: QuizPanelP
   if (outcome) {
     return (
       <section className={styles.quiz}>
-        <p className={uiStyles.eyebrow}>Результат Quiz</p>
+        <p className={uiStyles.eyebrow}>Результат квиза</p>
         <h1>{outcome.score}%</h1>
         <p>
           {outcome.isPassed

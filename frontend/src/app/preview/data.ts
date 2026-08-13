@@ -32,19 +32,38 @@ export function createPreviewTopics(role: UserRole): Topic[] {
     title,
     description,
     order: index + 1,
-    isTheoryRead: index < 2,
+    isTheoryRead: index === 0,
     isQuizPassed: index === 0,
     bestQuizScore: index === 0 ? 80 : 0,
-    isCompleted: false,
+    isCompleted: index === 0,
     levels: [1, 2, 3, 4].map((number) => ({
       number,
-      isOpened: index === 0 && number <= 2,
-      bestScore: number === 1 ? 75 : 0,
-      stars: number === 1 ? 2 : 0,
-      attempts: number === 1 ? 1 : 0,
-      lastAttemptId: null,
+      isOpened: index === 0,
+      bestScore: index === 0 ? 75 : 0,
+      stars: index === 0 ? 2 : 0,
+      attempts: index === 0 ? 1 : 0,
+      lastAttemptId: index === 0 ? 9000 + number : null,
     })),
   }))
+}
+
+export function createPreviewTrainingTopics(role: UserRole): Topic[] {
+  return createPreviewTopics(role).map((topic, topicIndex) => {
+    if (topicIndex !== 0) return topic
+
+    return {
+      ...topic,
+      isCompleted: false,
+      levels: topic.levels.map((level) => ({
+        ...level,
+        isOpened: level.number <= 2,
+        bestScore: level.number === 1 ? 75 : 0,
+        stars: level.number === 1 ? 2 : 0,
+        attempts: level.number === 1 ? 1 : 0,
+        lastAttemptId: level.number === 1 ? 9001 : null,
+      })),
+    }
+  })
 }
 
 export function createPreviewTheory(role: UserRole, topicId = 1): Theory {
@@ -115,10 +134,38 @@ export const previewQuizOutcome: QuizOutcome = {
 }
 
 export const previewLevels: LevelState[] = [
-  { number: 1, isOpened: true, scenarioId: 101 },
-  { number: 2, isOpened: true, scenarioId: 102 },
-  { number: 3, isOpened: false, scenarioId: 103 },
-  { number: 4, isOpened: false, scenarioId: 104 },
+  {
+    number: 1,
+    isOpened: true,
+    scenarioId: 101,
+    scenarioTitle: 'Безопасная ссылка на оплату',
+    scenarioDescription: 'Выберите безопасный ответ в переписке о доставке.',
+    responseMode: 'multiple_choice',
+  },
+  {
+    number: 2,
+    isOpened: true,
+    scenarioId: 102,
+    scenarioTitle: 'Похожие варианты ответа',
+    scenarioDescription: 'Найдите безопасное действие среди похожих формулировок.',
+    responseMode: 'similar_choice',
+  },
+  {
+    number: 3,
+    isOpened: false,
+    scenarioId: 103,
+    scenarioTitle: 'Ответ своими словами',
+    scenarioDescription: 'Сначала выберите вариант, затем сформулируйте ответ самостоятельно.',
+    responseMode: 'mixed',
+  },
+  {
+    number: 4,
+    isOpened: false,
+    scenarioId: 104,
+    scenarioTitle: 'Свободный диалог',
+    scenarioDescription: 'Ведите разговор самостоятельно и остановите опасную сделку.',
+    responseMode: 'free_text',
+  },
 ]
 
 export const previewSession: TrainingSession = {
@@ -210,38 +257,78 @@ export const previewAchievements: Achievements = {
   earned: [
     {
       code: 'first_training',
-      title: 'Первая тренировка',
-      description: 'Пройдите первый сценарий',
-      icon: '✦',
+      title: 'Первое прохождение',
+      description: 'Завершить первое Прохождение.',
+      icon: 'star',
       earned: true,
+      earnedAt: '2026-08-08T10:00:00Z',
       current: 1,
       target: 1,
     },
     {
       code: 'perfect_score',
-      title: 'Идеальный результат',
-      description: 'Наберите 100 баллов',
-      icon: '★',
+      title: 'Без ошибки',
+      description: 'Получить 100 Баллов.',
+      icon: 'shield',
       earned: true,
+      earnedAt: '2026-08-09T10:00:00Z',
+      current: 100,
+      target: 100,
+    },
+    {
+      code: 'first_topic_completed',
+      title: 'Первая Тема',
+      description: 'Завершить первую Тему.',
+      icon: 'book',
+      earned: true,
+      earnedAt: '2026-08-09T11:00:00Z',
       current: 1,
       target: 1,
+    },
+    {
+      code: 'streak_3',
+      title: 'Серия 3 дня',
+      description: 'Заниматься три дня подряд.',
+      icon: 'flame',
+      earned: true,
+      earnedAt: '2026-08-10T11:00:00Z',
+      current: 3,
+      target: 3,
     },
   ],
   available: [
     {
+      code: 'five_trainings',
+      title: 'Пять прохождений',
+      description: 'Завершить пять Прохождений.',
+      icon: 'stack',
+      earned: false,
+      current: 3,
+      target: 5,
+    },
+    {
       code: 'all_buyer_topics',
-      title: 'Безопасный пользователь',
-      description: 'Пройдите все темы роли',
-      icon: '🛡️',
+      title: 'Покупатель: все Темы',
+      description: 'Завершить шесть Тем покупателя.',
+      icon: 'buyer',
       earned: false,
       current: 1,
       target: 6,
     },
     {
+      code: 'all_seller_topics',
+      title: 'Продавец: все Темы',
+      description: 'Завершить шесть Тем продавца.',
+      icon: 'seller',
+      earned: false,
+      current: 0,
+      target: 6,
+    },
+    {
       code: 'streak_7',
       title: 'Серия 7 дней',
-      description: 'Учитесь неделю подряд',
-      icon: '🔥',
+      description: 'Заниматься семь дней подряд.',
+      icon: 'flame',
       earned: false,
       current: 3,
       target: 7,

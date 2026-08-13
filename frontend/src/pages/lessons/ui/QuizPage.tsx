@@ -26,9 +26,9 @@ export function QuizPage({ previewQuiz, previewOutcome, previewTopicId }: QuizPa
   if (!isPreview && !parsedTopicId) {
     return <InvalidRouteState backTo={basePath} backLabel="К темам" />
   }
-  if (isLoading) return <p className={uiStyles.muted}>Загружаем Quiz…</p>
+  if (isLoading) return <p className={uiStyles.muted}>Загружаем квиз…</p>
   if (error) return <ErrorState message={error} onRetry={() => void retry()} />
-  if (!quiz) return <p className={uiStyles.formError}>Quiz недоступен.</p>
+  if (!quiz) return <p className={uiStyles.formError}>Квиз недоступен.</p>
 
   return (
     <QuizPanel

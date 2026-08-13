@@ -1,5 +1,29 @@
 import { describe, expect, it } from 'vitest'
-import { mapTrainingSession } from './mappers'
+import { mapLevelState, mapTrainingSession } from './mappers'
+
+describe('mapLevelState', () => {
+  it('preserves the complete backend card contract', () => {
+    expect(
+      mapLevelState({
+        number: 3,
+        opened: true,
+        scenario_id: 13,
+        scenario_title: 'Ответ своими словами',
+        scenario_description: 'Сформулируйте безопасный ответ.',
+        response_type: 'mixed',
+        in_progress_attempt_id: 42,
+      }),
+    ).toEqual({
+      number: 3,
+      isOpened: true,
+      scenarioId: 13,
+      scenarioTitle: 'Ответ своими словами',
+      scenarioDescription: 'Сформулируйте безопасный ответ.',
+      responseMode: 'mixed',
+      inProgressAttemptId: 42,
+    })
+  })
+})
 
 describe('mapTrainingSession', () => {
   it('maps a resumable backend attempt into the training domain', () => {
