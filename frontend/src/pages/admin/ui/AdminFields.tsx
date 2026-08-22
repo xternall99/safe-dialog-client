@@ -10,18 +10,24 @@ import styles from './AdminPage.module.scss'
 interface FieldMetaProps {
   label: string
   hint?: string
+  error?: string
 }
 
 interface FieldShellProps extends FieldMetaProps {
   children: ReactNode
 }
 
-function FieldShell({ label, hint, children }: FieldShellProps) {
+function FieldShell({ label, hint, error, children }: FieldShellProps) {
   return (
     <label className={styles.field}>
       <span>{label}</span>
       {children}
       {hint && <small>{hint}</small>}
+      {error && (
+        <small className={styles.fieldError} role="alert">
+          {error}
+        </small>
+      )}
     </label>
   )
 }

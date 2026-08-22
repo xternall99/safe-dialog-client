@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { getApiErrorCode, getApiErrorMessage } from './apiError'
+import { getApiErrorCode, getApiErrorMessage, getApiErrorStatus } from './apiError'
 
 const backendError = {
   status: 409,
@@ -17,11 +17,13 @@ describe('API error adapter', () => {
   it('extracts a validated backend error', () => {
     expect(getApiErrorCode(backendError)).toBe('STALE_STEP')
     expect(getApiErrorMessage(backendError)).toBe('Шаг уже изменился')
+    expect(getApiErrorStatus(backendError)).toBe(409)
   })
 
   it('does not trust an incomplete envelope', () => {
     expect(getApiErrorMessage({ status: 500, data: { error: { message: 'unsafe' } } })).toBe(
       'Не удалось выполнить запрос. Попробуйте ещё раз.',
     )
+    expect(getApiErrorStatus(new Error('network error'))).toBeUndefined()
   })
 })

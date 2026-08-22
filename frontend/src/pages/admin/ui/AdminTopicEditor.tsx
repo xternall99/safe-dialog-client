@@ -1,26 +1,25 @@
+import { zodResolver } from '@hookform/resolvers/zod'
 import { useEffect, useState } from 'react'
+import { useForm } from 'react-hook-form'
 import {
   useChangeAdminTopicStatusMutation,
   useCreateAdminTopicMutation,
   useGetAdminTopicQuery,
   useUpdateAdminTopicMutation,
-  type AdminTopicDraft,
 } from '@/entities/admin-content'
-import type { UserRole } from '@/entities/user'
 import { getApiErrorMessage } from '@/shared/http-error'
+import {
+  adminTopicFormSchema,
+  emptyAdminTopicForm,
+  mapTopicFormToDraft,
+  mapTopicToForm,
+  type AdminTopicFormValues,
+} from '../model/adminForms'
 import { ContentStatusActions } from './ContentStatusActions'
 import { EditorActions, PrimaryAction, SelectField, TextAreaField, TextField } from './AdminFields'
 import { QuizEditor } from './QuizEditor'
 import { TheoryEditor } from './TheoryEditor'
 import styles from './AdminPage.module.scss'
-
-const emptyTopic: AdminTopicDraft = {
-  slug: '',
-  role: 'buyer',
-  title: '',
-  description: '',
-  sortOrder: 1,
-}
 
 interface AdminTopicEditorProps {
   topicId?: number
@@ -29,31 +28,33 @@ interface AdminTopicEditorProps {
 
 export function AdminTopicEditor({ topicId, onCreated }: AdminTopicEditorProps) {
   const { data: topic, isLoading, error } = useGetAdminTopicQuery(topicId ?? 0, { skip: !topicId })
-  const [draft, setDraft] = useState<AdminTopicDraft>(emptyTopic)
   const [message, setMessage] = useState<string>()
   const [createTopic, createState] = useCreateAdminTopicMutation()
   const [updateTopic, updateState] = useUpdateAdminTopicMutation()
   const [changeStatus, statusState] = useChangeAdminTopicStatusMutation()
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors },
+  } = useForm<AdminTopicFormValues>({
+    resolver: zodResolver(adminTopicFormSchema),
+    defaultValues: emptyAdminTopicForm,
+  })
 
   useEffect(() => {
-    if (!topic) return
-    setDraft({
-      slug: topic.slug,
-      role: topic.role,
-      title: topic.title,
-      description: topic.description,
-      sortOrder: topic.sortOrder,
-    })
-  }, [topic])
+    reset(topic ? mapTopicToForm(topic) : emptyAdminTopicForm)
+  }, [reset, topic])
 
-  const save = async () => {
+  const save = async (formValues: AdminTopicFormValues) => {
     setMessage(undefined)
     try {
+      const value = mapTopicFormToDraft(formValues)
       if (topicId) {
-        await updateTopic({ topicId, value: draft }).unwrap()
+        await updateTopic({ topicId, value }).unwrap()
         setMessage('Основные данные Темы сохранены.')
       } else {
-        const created = await createTopic(draft).unwrap()
+        const created = await createTopic(value).unwrap()
         if (!created.id) throw new Error('Backend не вернул id Темы.')
         onCreated(created.id)
       }
@@ -92,48 +93,48 @@ export function AdminTopicEditor({ topicId, onCreated }: AdminTopicEditorProps) 
       <div className={styles.formGrid}>
         <TextField
           disabled={!editable}
+          error={errors.title?.message}
           label="Название"
-          value={draft.title}
-          onChange={(event) => setDraft({ ...draft, title: event.target.value })}
+          {...register('title')}
         />
         <TextField
           disabled={!editable}
+          error={errors.slug?.message}
           label="Slug"
           hint="Латиницей, например phishing-links"
-          value={draft.slug}
-          onChange={(event) => setDraft({ ...draft, slug: event.target.value })}
+          {...register('slug')}
         />
         <SelectField
           disabled={!editable}
+          error={errors.role?.message}
           label="Ролевая ветка"
-          value={draft.role}
-          onChange={(event) => setDraft({ ...draft, role: event.target.value as UserRole })}
+          {...register('role')}
         >
           <option value="buyer">Покупатель</option>
           <option value="seller">Продавец</option>
         </SelectField>
         <TextField
           disabled={!editable}
+          error={errors.sortOrder?.message}
           label="Порядок"
           max={6}
           min={1}
           type="number"
-          value={draft.sortOrder}
-          onChange={(event) => setDraft({ ...draft, sortOrder: Number(event.target.value) })}
+          {...register('sortOrder', { valueAsNumber: true })}
         />
         <TextAreaField
           className={styles.wideField}
           disabled={!editable}
+          error={errors.description?.message}
           label="Описание"
-          value={draft.description}
-          onChange={(event) => setDraft({ ...draft, description: event.target.value })}
+          {...register('description')}
         />
       </div>
 
       {message && <p className={styles.formMessage}>{message}</p>}
       {editable && (
         <EditorActions>
-          <PrimaryAction disabled={pending} onClick={save}>
+          <PrimaryAction disabled={pending} onClick={handleSubmit(save)}>
             {topicId ? 'Сохранить Тему' : 'Создать черновик'}
           </PrimaryAction>
         </EditorActions>

@@ -1,29 +1,25 @@
+import { zodResolver } from '@hookform/resolvers/zod'
 import { useEffect, useState } from 'react'
+import { useForm } from 'react-hook-form'
 import {
   useChangeAdminScenarioStatusMutation,
   useCreateAdminScenarioMutation,
   useGetAdminTopicsQuery,
   useUpdateAdminScenarioMutation,
   type AdminScenario,
-  type AdminScenarioDraft,
 } from '@/entities/admin-content'
 import type { UserRole } from '@/entities/user'
 import { getApiErrorMessage } from '@/shared/http-error'
+import {
+  adminScenarioFormSchema,
+  emptyAdminScenarioForm,
+  mapScenarioFormToDraft,
+  mapScenarioToForm,
+  type AdminScenarioFormValues,
+} from '../model/adminForms'
 import { ContentStatusActions } from './ContentStatusActions'
 import { EditorActions, PrimaryAction, SelectField, TextAreaField, TextField } from './AdminFields'
 import styles from './AdminPage.module.scss'
-
-const emptyScenario: AdminScenarioDraft = {
-  title: '',
-  description: '',
-  levelId: 1,
-  topicId: 1,
-  role: 'buyer',
-  scamScheme: '',
-  productContext: {},
-  aiSystemPrompt: '',
-  finalRubric: {},
-}
 
 interface AdminScenarioEditorProps {
   scenario?: AdminScenario
@@ -33,52 +29,44 @@ interface AdminScenarioEditorProps {
 export function AdminScenarioEditor({ scenario, onCreated }: AdminScenarioEditorProps) {
   const scenarioId = scenario?.id
   const { data: topics = [] } = useGetAdminTopicsQuery()
-  const [draft, setDraft] = useState<AdminScenarioDraft>(emptyScenario)
-  const [productContext, setProductContext] = useState('{}')
-  const [finalRubric, setFinalRubric] = useState('{}')
   const [message, setMessage] = useState<string>()
   const [createScenario, createState] = useCreateAdminScenarioMutation()
   const [updateScenario, updateState] = useUpdateAdminScenarioMutation()
   const [changeStatus, statusState] = useChangeAdminScenarioStatusMutation()
+  const {
+    register,
+    handleSubmit,
+    reset,
+    setValue,
+    watch,
+    formState: { errors },
+  } = useForm<AdminScenarioFormValues>({
+    resolver: zodResolver(adminScenarioFormSchema),
+    defaultValues: emptyAdminScenarioForm,
+  })
+  const selectedRole = watch('role')
+  const selectedTopicId = watch('topicId')
 
   useEffect(() => {
-    if (!scenario) return
-    setDraft({
-      title: scenario.title,
-      description: scenario.description,
-      levelId: scenario.levelId,
-      topicId: scenario.topicId,
-      role: scenario.role,
-      scamScheme: scenario.scamScheme,
-      productContext: scenario.productContext,
-      aiSystemPrompt: scenario.aiSystemPrompt,
-      finalRubric: scenario.finalRubric,
-    })
-    setProductContext(JSON.stringify(scenario.productContext, null, 2))
-    setFinalRubric(JSON.stringify(scenario.finalRubric, null, 2))
-  }, [scenario])
+    reset(scenario ? mapScenarioToForm(scenario) : emptyAdminScenarioForm)
+  }, [reset, scenario])
 
   useEffect(() => {
-    const firstTopic = topics[0]
-    const firstTopicId = firstTopic?.id
-    if (!scenarioId && firstTopic && firstTopicId) {
-      setDraft((current) => ({ ...current, topicId: firstTopicId, role: firstTopic.role }))
-    }
-  }, [scenarioId, topics])
+    if (scenarioId) return
 
-  const withJson = (): AdminScenarioDraft => {
-    const parsedContext = JSON.parse(productContext) as unknown
-    const parsedRubric = JSON.parse(finalRubric) as unknown
-    if (!isJsonObject(parsedContext) || !isJsonObject(parsedRubric)) {
-      throw new Error('Контекст товара и итоговая рубрика должны быть JSON-объектами.')
-    }
-    return { ...draft, productContext: parsedContext, finalRubric: parsedRubric }
-  }
+    const selectedTopic = topics.find((topic) => topic.id === selectedTopicId)
+    if (selectedTopic?.role === selectedRole && selectedTopic.status !== 'archived') return
 
-  const save = async () => {
+    const firstTopic = topics.find(
+      (topic) => topic.role === selectedRole && topic.status !== 'archived',
+    )
+    if (firstTopic?.id) setValue('topicId', firstTopic.id, { shouldValidate: true })
+  }, [scenarioId, selectedRole, selectedTopicId, setValue, topics])
+
+  const save = async (formValues: AdminScenarioFormValues) => {
     setMessage(undefined)
     try {
-      const value = withJson()
+      const value = mapScenarioFormToDraft(formValues)
       if (scenarioId) {
         await updateScenario({ scenarioId, value }).unwrap()
         setMessage('Основные данные Сценария сохранены.')
@@ -88,11 +76,7 @@ export function AdminScenarioEditor({ scenario, onCreated }: AdminScenarioEditor
         onCreated(created.id)
       }
     } catch (requestError) {
-      setMessage(
-        requestError instanceof SyntaxError
-          ? 'Проверьте синтаксис JSON в контексте товара и итоговой рубрике.'
-          : getApiErrorMessage(requestError),
-      )
+      setMessage(getApiErrorMessage(requestError))
     }
   }
 
@@ -110,7 +94,7 @@ export function AdminScenarioEditor({ scenario, onCreated }: AdminScenarioEditor
   const pending = createState.isLoading || updateState.isLoading || statusState.isLoading
   const editable = !scenario?.status || scenario.status === 'draft'
   const matchingTopics = topics.filter(
-    (topic) => topic.role === draft.role && topic.status !== 'archived',
+    (topic) => topic.role === selectedRole && topic.status !== 'archived',
   )
 
   return (
@@ -129,20 +113,24 @@ export function AdminScenarioEditor({ scenario, onCreated }: AdminScenarioEditor
         <TextField
           className={styles.wideField}
           disabled={!editable}
+          error={errors.title?.message}
           label="Название"
-          value={draft.title}
-          onChange={(event) => setDraft({ ...draft, title: event.target.value })}
+          {...register('title')}
         />
         <SelectField
           disabled={!editable}
+          error={errors.role?.message}
           label="Ролевая ветка"
-          value={draft.role}
+          value={selectedRole}
           onChange={(event) => {
             const role = event.target.value as UserRole
             const firstTopic = topics.find(
               (topic) => topic.role === role && topic.status !== 'archived',
             )
-            setDraft({ ...draft, role, topicId: firstTopic?.id ?? draft.topicId })
+            setValue('role', role, { shouldDirty: true, shouldValidate: true })
+            if (firstTopic?.id) {
+              setValue('topicId', firstTopic.id, { shouldDirty: true, shouldValidate: true })
+            }
           }}
         >
           <option value="buyer">Покупатель</option>
@@ -150,9 +138,15 @@ export function AdminScenarioEditor({ scenario, onCreated }: AdminScenarioEditor
         </SelectField>
         <SelectField
           disabled={!editable}
+          error={errors.topicId?.message}
           label="Тема"
-          value={draft.topicId}
-          onChange={(event) => setDraft({ ...draft, topicId: Number(event.target.value) })}
+          value={selectedTopicId}
+          onChange={(event) =>
+            setValue('topicId', Number(event.target.value), {
+              shouldDirty: true,
+              shouldValidate: true,
+            })
+          }
         >
           {matchingTopics.map((topic) => (
             <option key={topic.id} value={topic.id}>
@@ -162,10 +156,10 @@ export function AdminScenarioEditor({ scenario, onCreated }: AdminScenarioEditor
         </SelectField>
         <SelectField
           disabled={!editable}
+          error={errors.levelId?.message}
           label="Уровень"
           hint="Уровни 1–4 используют соответствующие backend id"
-          value={draft.levelId}
-          onChange={(event) => setDraft({ ...draft, levelId: Number(event.target.value) })}
+          {...register('levelId', { valueAsNumber: true })}
         >
           {[1, 2, 3, 4].map((level) => (
             <option key={level} value={level}>
@@ -176,44 +170,44 @@ export function AdminScenarioEditor({ scenario, onCreated }: AdminScenarioEditor
         <TextAreaField
           className={styles.wideField}
           disabled={!editable}
+          error={errors.description?.message}
           label="Описание"
-          value={draft.description}
-          onChange={(event) => setDraft({ ...draft, description: event.target.value })}
+          {...register('description')}
         />
         <TextField
           className={styles.wideField}
           disabled={!editable}
+          error={errors.scamScheme?.message}
           label="Схема мошенничества"
-          value={draft.scamScheme}
-          onChange={(event) => setDraft({ ...draft, scamScheme: event.target.value })}
+          {...register('scamScheme')}
         />
         <TextAreaField
           className={styles.wideField}
           disabled={!editable}
+          error={errors.productContext?.message}
           label="Контекст товара (JSON)"
-          value={productContext}
-          onChange={(event) => setProductContext(event.target.value)}
+          {...register('productContext')}
         />
         <TextAreaField
           className={styles.wideField}
           disabled={!editable}
+          error={errors.aiSystemPrompt?.message}
           label="Системная инструкция AI"
-          value={draft.aiSystemPrompt}
-          onChange={(event) => setDraft({ ...draft, aiSystemPrompt: event.target.value })}
+          {...register('aiSystemPrompt')}
         />
         <TextAreaField
           className={styles.wideField}
           disabled={!editable}
+          error={errors.finalRubric?.message}
           label="Итоговая рубрика (JSON)"
-          value={finalRubric}
-          onChange={(event) => setFinalRubric(event.target.value)}
+          {...register('finalRubric')}
         />
       </div>
 
       {message && <p className={styles.formMessage}>{message}</p>}
       {editable && (
         <EditorActions>
-          <PrimaryAction disabled={pending} onClick={save}>
+          <PrimaryAction disabled={pending} onClick={handleSubmit(save)}>
             {scenarioId ? 'Сохранить Сценарий' : 'Создать черновик'}
           </PrimaryAction>
         </EditorActions>
@@ -232,8 +226,4 @@ export function AdminScenarioEditor({ scenario, onCreated }: AdminScenarioEditor
       )}
     </article>
   )
-}
-
-function isJsonObject(value: unknown): value is Record<string, unknown> {
-  return typeof value === 'object' && value !== null && !Array.isArray(value)
 }

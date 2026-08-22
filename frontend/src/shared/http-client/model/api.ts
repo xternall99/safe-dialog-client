@@ -17,7 +17,7 @@ export const apiTags = {
 
 const configuredApiBaseUrl = import.meta.env.VITE_API_BASE_URL ?? '/api'
 const apiBaseUrl =
-  import.meta.env.MODE === 'test'
+  import.meta.env.MODE === 'test' || typeof window === 'undefined'
     ? new URL(configuredApiBaseUrl, 'http://localhost').toString().replace(/\/$/, '')
     : configuredApiBaseUrl
 

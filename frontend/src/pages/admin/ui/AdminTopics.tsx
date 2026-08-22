@@ -1,5 +1,9 @@
 import { useEffect, useState } from 'react'
-import { statusLabels, useGetAdminTopicsQuery, type AdminTopic } from '@/entities/admin-content'
+import {
+  contentStatusLabels,
+  useGetAdminTopicsQuery,
+  type AdminTopic,
+} from '@/entities/admin-content'
 import { ErrorState } from '@/shared/error-state'
 import { AdminTopicEditor } from './AdminTopicEditor'
 import styles from './AdminPage.module.scss'
@@ -51,7 +55,9 @@ export function AdminTopics() {
                 <b>{topic.title}</b>
                 <small>{topic.role === 'buyer' ? 'Покупатель' : 'Продавец'}</small>
               </span>
-              {topic.status && <em data-status={topic.status}>{statusLabels[topic.status]}</em>}
+              {topic.status && (
+                <em data-status={topic.status}>{contentStatusLabels[topic.status]}</em>
+              )}
             </button>
           ))}
           {data.length === 0 && <p>Тем пока нет. Создайте первый черновик.</p>}

@@ -14,7 +14,8 @@
     "test:e2e": "playwright test",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "check": "npm run format:check && npm run lint && npm run typecheck && npm run test && npm run build"
+    "check": "npm run format:check && npm run lint && npm run typecheck && npm run test && npm run build",
+    "prepare": "cd .. && frontend/node_modules/.bin/husky"
   },
   "lint-staged": {
     "src/**/*.{ts,tsx}": [
@@ -48,6 +49,7 @@
     "eslint-plugin-react-hooks": "^5.0.0",
     "eslint-plugin-react-refresh": "^0.4.18",
     "globals": "^15.14.0",
+    "husky": "^9.1.7",
     "jsdom": "^29.1.1",
     "lint-staged": "^16.0.0",
     "msw": "^2.15.0",

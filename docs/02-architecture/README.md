@@ -22,6 +22,21 @@ flowchart LR
 
 ## Компоненты
 
+### Frontend composition root
+
+`frontend/src/app/App.tsx` только запускает клиентский роутер. Декларативная
+таблица production- и preview-маршрутов находится в `app/router/AppRouter.tsx`,
+проверки доступа и ленивое подключение админки — в `app/router/RouteGuards.tsx`,
+а layouts авторизованного и preview-приложения — в
+`app/router/AppLayouts.tsx`. Адаптеры, связывающие preview fixtures с обычными
+страницами, принадлежат `app/preview`.
+
+Такое разделение сохраняет все продуктовые маршруты в одном обозримом месте,
+но не смешивает их с загрузкой Account, проверкой прав, layout и демонстрационным
+источником данных. Данные backend проходят границу RTK Query → Zod → mapper до
+попадания в UI. Административные endpoint-группы разделены по агрегатам Темы и
+Сценарии, сохраняя общий публичный API slice `entities/admin-content`.
+
 ### Точка входа
 
 `backend/cmd/api/main.go` создаёт приложение через `core/app.New`, запускает HTTP-сервер и закрывает соединение с БД при остановке.

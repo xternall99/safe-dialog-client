@@ -1,6 +1,12 @@
 import type { FetchBaseQueryError } from '@reduxjs/toolkit/query'
 import { isApiErrorEnvelope, type ApiErrorCode } from '../model/contracts'
 
+export function getApiErrorStatus(error: unknown): FetchBaseQueryError['status'] | undefined {
+  if (!error || typeof error !== 'object' || !('status' in error)) return undefined
+
+  return (error as FetchBaseQueryError).status
+}
+
 export function getApiErrorCode(error: unknown): ApiErrorCode | undefined {
   if (!error || typeof error !== 'object' || !('data' in error)) return undefined
 
