@@ -16,11 +16,11 @@ const account: Account = {
   streak: { current: 3, longest: 7, isActiveToday: true },
 }
 
-function renderHeader() {
+function renderHeader(path = '/') {
   return render(
     <Provider store={createTestStore()}>
       <PreviewModeProvider>
-        <MemoryRouter>
+        <MemoryRouter initialEntries={[path]}>
           <AppHeader account={account} basePath="/preview" />
         </MemoryRouter>
       </PreviewModeProvider>
@@ -29,6 +29,12 @@ function renderHeader() {
 }
 
 describe('AppHeader profile menu', () => {
+  it('marks the current navigation destination for assistive technology', () => {
+    renderHeader('/preview/progress')
+
+    expect(screen.getByRole('link', { name: 'Прогресс' })).toHaveAttribute('aria-current', 'page')
+  })
+
   it('closes on Escape and on a pointer press outside the menu', async () => {
     const user = userEvent.setup()
     renderHeader()

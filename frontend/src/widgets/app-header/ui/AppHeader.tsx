@@ -65,9 +65,13 @@ export function AppHeader({ account, basePath = '' }: AppHeaderProps) {
   return (
     <header className={styles.topbar}>
       <Brand />
-      <nav className={styles.nav}>
+      <nav className={styles.nav} aria-label="Основная навигация">
         {account.accessRole === 'admin' && !basePath && (
-          <Link className={isActive('/admin') ? styles.active : undefined} to="/admin">
+          <Link
+            aria-current={isActive('/admin') ? 'page' : undefined}
+            className={isActive('/admin') ? styles.active : undefined}
+            to="/admin"
+          >
             Админ-панель
           </Link>
         )}
@@ -75,7 +79,12 @@ export function AppHeader({ account, basePath = '' }: AppHeaderProps) {
           const href = `${basePath}${to}`
 
           return (
-            <Link key={to} className={isActive(href) ? styles.active : undefined} to={href}>
+            <Link
+              key={to}
+              aria-current={isActive(href) ? 'page' : undefined}
+              className={isActive(href) ? styles.active : undefined}
+              to={href}
+            >
               {label}
             </Link>
           )

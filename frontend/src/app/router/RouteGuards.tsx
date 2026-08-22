@@ -11,7 +11,11 @@ const AdminPage = lazy(() =>
 )
 
 export function LoadingScreen() {
-  return <div className={styles.splash}>Загружаем тренажёр безопасности…</div>
+  return (
+    <div className={styles.splash} role="status" aria-live="polite">
+      Загружаем тренажёр безопасности…
+    </div>
+  )
 }
 
 export function AuthOnly({ mode }: { mode: 'login' | 'register' }) {

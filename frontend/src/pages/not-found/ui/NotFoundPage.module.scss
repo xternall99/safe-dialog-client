@@ -1,0 +1,45 @@
+.page {
+  display: grid;
+  width: min(100% - 36px, 660px);
+  min-height: 100vh;
+  margin: 0 auto;
+  align-content: center;
+  justify-items: start;
+
+  h1 {
+    margin-bottom: 12px;
+    font-size: clamp(34px, 7vw, 56px);
+    letter-spacing: -1.7px;
+  }
+
+  > p:not(.code) {
+    max-width: 520px;
+    margin-bottom: 28px;
+    color: var(--color-text-muted);
+    font-size: 18px;
+    line-height: 1.55;
+  }
+}
+
+.code {
+  margin-bottom: 12px;
+  color: var(--color-accent);
+  font-size: 16px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+}
+
+.link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 18px;
+  border-radius: 12px;
+  color: #fff;
+  background: var(--color-accent);
+  font-weight: 700;
+
+  &:hover {
+    background: var(--color-accent-hover);
+  }
+}

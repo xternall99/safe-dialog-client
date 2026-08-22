@@ -18,8 +18,11 @@ import { LoadingScreen } from './RouteGuards'
 function ApplicationShell({ account, basePath }: { account: Account; basePath?: string }) {
   return (
     <div>
+      <a className={styles.skipLink} href="#main-content">
+        Перейти к содержимому
+      </a>
       <AppHeader account={account} basePath={basePath} />
-      <main className={styles.page}>
+      <main className={styles.page} id="main-content" tabIndex={-1}>
         <Outlet />
       </main>
     </div>

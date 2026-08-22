@@ -1,10 +1,11 @@
-import { useParams } from 'react-router-dom'
+import { Route, Routes, useParams } from 'react-router-dom'
 import { useCurrentAccount } from '@/entities/user'
 import { AuthPage } from '@/pages/auth'
 import { DashboardPage } from '@/pages/dashboard'
-import { LessonsPage, QuizPage, TheoryPage } from '@/pages/lessons'
-import { ProgressPage } from '@/pages/profile'
-import { ChatTrainingPage, TrainingPage } from '@/pages/training'
+import { LessonsPage, QuizPage, SkillCheckPage, TheoryPage } from '@/pages/lessons'
+import { NotFoundPage } from '@/pages/not-found'
+import { AchievementsPage, ProgressPage } from '@/pages/profile'
+import { ChatTrainingPage, ResultPage, TrainingPage } from '@/pages/training'
 import { PreviewModeProvider } from '@/shared/runtime-mode'
 import {
   createPreviewDashboard,
@@ -13,11 +14,13 @@ import {
   createPreviewTrainingTopics,
   createPreviewTopics,
   previewFreePlaySession,
+  previewAchievements,
   previewLevels,
   previewQuiz,
   previewQuizOutcome,
   previewResult,
   previewSession,
+  previewSkillCheck,
 } from './data'
 
 export function PreviewAuth({ mode }: { mode: 'login' | 'register' }) {
@@ -89,4 +92,31 @@ export function PreviewChatRoute() {
   const session = sessionId === 'free-play' ? previewFreePlaySession : previewSession
 
   return <ChatTrainingPage preview={{ session, result: previewResult }} />
+}
+
+export function PreviewRoutes() {
+  return (
+    <Routes>
+      <Route path="dashboard" element={<PreviewDashboardRoute />} />
+      <Route path="lessons" element={<PreviewLessonsRoute />} />
+      <Route path="lessons/:lessonId" element={<PreviewTheoryRoute />} />
+      <Route path="lessons/:lessonId/quiz" element={<PreviewQuizRoute />} />
+      <Route
+        path="lessons/:lessonId/skill-check"
+        element={<SkillCheckPage preview={previewSkillCheck} />}
+      />
+      <Route path="chats" element={<PreviewTrainingRoute />} />
+      <Route path="sessions/:sessionId" element={<PreviewChatRoute />} />
+      <Route
+        path="sessions/:sessionId/result"
+        element={<ResultPage previewResult={previewResult} />}
+      />
+      <Route path="progress" element={<PreviewProgressRoute />} />
+      <Route
+        path="achievements"
+        element={<AchievementsPage previewAchievements={previewAchievements} />}
+      />
+      <Route path="*" element={<NotFoundPage />} />
+    </Routes>
+  )
 }
