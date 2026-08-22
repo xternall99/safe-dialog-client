@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import {
-  statusLabels,
+  contentStatusLabels,
   useGetAdminScenariosQuery,
   type AdminScenario,
 } from '@/entities/admin-content'
@@ -59,7 +59,7 @@ export function AdminScenarios() {
                 </small>
               </span>
               {scenario.status && (
-                <em data-status={scenario.status}>{statusLabels[scenario.status]}</em>
+                <em data-status={scenario.status}>{contentStatusLabels[scenario.status]}</em>
               )}
             </button>
           ))}

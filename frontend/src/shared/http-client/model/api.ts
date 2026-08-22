@@ -14,8 +14,14 @@ export const apiTags = {
   adminScenarios: 'AdminScenarios',
 } as const
 
+const configuredApiBaseUrl = import.meta.env.VITE_API_BASE_URL ?? '/api'
+const apiBaseUrl =
+  typeof window === 'undefined' && configuredApiBaseUrl.startsWith('/')
+    ? `http://localhost${configuredApiBaseUrl}`
+    : configuredApiBaseUrl
+
 const baseQuery = fetchBaseQuery({
-  baseUrl: `${import.meta.env.VITE_API_BASE_URL ?? '/api'}/v1`,
+  baseUrl: `${apiBaseUrl}/v1`,
   credentials: 'include',
 })
 
