@@ -1,9 +1,10 @@
 import { Navigate, Route, Routes } from 'react-router-dom'
 import { DashboardPage } from '@/pages/dashboard'
-import { LessonsPage, QuizPage, TheoryPage } from '@/pages/lessons'
+import { AvitoChatIntegrationPage } from '@/pages/integration'
+import { LessonsPage, QuizPage, SkillCheckPage, TheoryPage } from '@/pages/lessons'
 import { AchievementsPage, ProgressPage } from '@/pages/profile'
 import { ChatTrainingPage, ResultPage, TrainingPage } from '@/pages/training'
-import { previewAchievements, previewResult } from '../preview/data'
+import { previewAchievements, previewResult, previewSkillCheck } from '../preview/data'
 import {
   PreviewAuth,
   PreviewChatRoute,
@@ -30,6 +31,10 @@ export function AppRouter() {
         <Route path="/preview/lessons" element={<PreviewLessonsRoute />} />
         <Route path="/preview/lessons/:lessonId" element={<PreviewTheoryRoute />} />
         <Route path="/preview/lessons/:lessonId/quiz" element={<PreviewQuizRoute />} />
+        <Route
+          path="/preview/lessons/:lessonId/skill-check"
+          element={<SkillCheckPage preview={previewSkillCheck} />}
+        />
         <Route path="/preview/chats" element={<PreviewTrainingRoute />} />
         <Route path="/preview/sessions/:sessionId" element={<PreviewChatRoute />} />
         <Route
@@ -50,11 +55,13 @@ export function AppRouter() {
         <Route path="/lessons" element={<LessonsPage />} />
         <Route path="/lessons/:lessonId" element={<TheoryPage />} />
         <Route path="/lessons/:lessonId/quiz" element={<QuizPage />} />
+        <Route path="/lessons/:lessonId/skill-check" element={<SkillCheckPage />} />
         <Route path="/chats" element={<TrainingPage />} />
         <Route path="/sessions/:sessionId" element={<ChatTrainingPage />} />
         <Route path="/sessions/:sessionId/result" element={<ResultPage />} />
         <Route path="/progress" element={<ProgressPage />} />
         <Route path="/achievements" element={<AchievementsPage />} />
+        <Route path="/integration/avito-chat" element={<AvitoChatIntegrationPage />} />
       </Route>
 
       <Route path="*" element={<Navigate to="/dashboard" replace />} />

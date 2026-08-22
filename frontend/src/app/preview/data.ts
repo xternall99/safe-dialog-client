@@ -1,4 +1,4 @@
-import type { Quiz, QuizOutcome, Theory, Topic } from '@/entities/learning'
+import type { Quiz, QuizOutcome, SkillCheck, Theory, Topic } from '@/entities/learning'
 import type { Achievements, Dashboard, Progress } from '@/entities/progress'
 import type { AttemptResult, LevelState, TrainingSession } from '@/entities/training'
 import type { Account, UserRole } from '@/entities/user'
@@ -32,19 +32,38 @@ export function createPreviewTopics(role: UserRole): Topic[] {
     title,
     description,
     order: index + 1,
-    isTheoryRead: index < 2,
+    isTheoryRead: index === 0,
     isQuizPassed: index === 0,
     bestQuizScore: index === 0 ? 80 : 0,
-    isCompleted: false,
+    isCompleted: index === 0,
     levels: [1, 2, 3, 4].map((number) => ({
       number,
-      isOpened: index === 0 && number <= 2,
-      bestScore: number === 1 ? 75 : 0,
-      stars: number === 1 ? 2 : 0,
-      attempts: number === 1 ? 1 : 0,
-      lastAttemptId: null,
+      isOpened: index === 0,
+      bestScore: index === 0 ? 75 : 0,
+      stars: index === 0 ? 2 : 0,
+      attempts: index === 0 ? 1 : 0,
+      lastAttemptId: index === 0 ? 9000 + number : null,
     })),
   }))
+}
+
+export function createPreviewTrainingTopics(role: UserRole): Topic[] {
+  return createPreviewTopics(role).map((topic, topicIndex) => {
+    if (topicIndex !== 0) return topic
+
+    return {
+      ...topic,
+      isCompleted: false,
+      levels: topic.levels.map((level) => ({
+        ...level,
+        isOpened: level.number <= 2,
+        bestScore: level.number === 1 ? 75 : 0,
+        stars: level.number === 1 ? 2 : 0,
+        attempts: level.number === 1 ? 1 : 0,
+        lastAttemptId: level.number === 1 ? 9001 : null,
+      })),
+    }
+  })
 }
 
 export function createPreviewTheory(role: UserRole, topicId = 1): Theory {
@@ -114,21 +133,69 @@ export const previewQuizOutcome: QuizOutcome = {
   streak: previewAccount.streak,
 }
 
+export const previewSkillCheck: SkillCheck = {
+  id: 7001,
+  topicId: 1,
+  phase: 'after_locked',
+  beforeCorrect: false,
+  beforePattern: 'Открыть ссылку и проверить',
+}
+
 export const previewLevels: LevelState[] = [
-  { number: 1, isOpened: true, scenarioId: 101 },
-  { number: 2, isOpened: true, scenarioId: 102 },
-  { number: 3, isOpened: false, scenarioId: 103 },
-  { number: 4, isOpened: false, scenarioId: 104 },
+  {
+    number: 1,
+    isOpened: true,
+    scenarioId: 101,
+    scenarioTitle: 'Безопасная ссылка на оплату',
+    scenarioDescription: 'Выберите безопасный ответ в переписке о доставке.',
+    responseMode: 'multiple_choice',
+  },
+  {
+    number: 2,
+    isOpened: true,
+    scenarioId: 102,
+    scenarioTitle: 'Похожие варианты ответа',
+    scenarioDescription: 'Найдите безопасное действие среди похожих формулировок.',
+    responseMode: 'similar_choice',
+  },
+  {
+    number: 3,
+    isOpened: false,
+    scenarioId: 103,
+    scenarioTitle: 'Ответ своими словами',
+    scenarioDescription: 'Сначала выберите вариант, затем сформулируйте ответ самостоятельно.',
+    responseMode: 'mixed',
+  },
+  {
+    number: 4,
+    isOpened: false,
+    scenarioId: 104,
+    scenarioTitle: 'Свободный диалог',
+    scenarioDescription: 'Ведите разговор самостоятельно и остановите опасную сделку.',
+    responseMode: 'free_text',
+  },
 ]
 
 export const previewSession: TrainingSession = {
   attemptId: 9001,
   status: 'IN_PROGRESS',
   scenarioId: 101,
+  scenarioTitle: 'Фишинговая ссылка в переписке',
+  scenarioDescription: 'Оставьте сделку внутри сервиса.',
   topicId: 1,
-  productContext: { item: 'Смартфон', price: 42000 },
+  topicTitle: 'Фишинговые ссылки',
+  level: 1,
+  userRole: 'seller',
+  counterpartyRole: 'buyer',
+  productContext: {
+    itemTitle: 'Смартфон',
+    category: 'Электроника',
+    dealMethod: 'delivery',
+    price: 42000,
+    currency: 'RUB',
+  },
   mode: 'multiple_choice',
-  progress: { currentStep: 2, answeredSteps: 1 },
+  progress: { currentStep: 2, answeredSteps: 1, totalSteps: 4 },
   step: {
     id: 2,
     number: 2,
@@ -140,7 +207,15 @@ export const previewSession: TrainingSession = {
       { id: 4, text: 'Лучше встретимся лично без проверки' },
     ],
   },
-  answers: [{ stepId: 1, optionId: 2 }],
+  answers: [
+    {
+      stepId: 1,
+      answerType: 'option',
+      optionId: 2,
+      optionText: 'Да, актуален.',
+      points: 100,
+    },
+  ],
   messages: [
     { role: 'assistant', text: 'Здравствуйте! Товар ещё актуален?' },
     { role: 'user', text: 'Да, актуален.' },
@@ -155,8 +230,18 @@ export const previewFreePlaySession: TrainingSession = {
   scenarioId: 0,
   topicId: 0,
   mode: 'free_text',
-  productContext: { item: 'Игровая приставка', price: 39000, difficulty: 'adaptive' },
-  progress: { currentStep: 1, answeredSteps: 0 },
+  scenarioTitle: 'Свободная игра',
+  scenarioDescription: 'Адаптивный диалог без подсказок.',
+  topicTitle: 'Свободная игра',
+  level: 4,
+  productContext: {
+    itemTitle: 'Игровая приставка',
+    category: 'Электроника',
+    dealMethod: 'delivery',
+    price: 39000,
+    currency: 'RUB',
+  },
+  progress: { currentStep: 1, answeredSteps: 0, totalSteps: 4 },
   step: {
     id: 1,
     number: 1,
@@ -180,23 +265,41 @@ export const previewResult: AttemptResult = {
   decisionReview: [
     {
       stepId: 1,
+      stepNumber: 1,
+      answerType: 'option',
       optionId: 2,
       optionText: 'Оформим доставку только внутри сервиса',
       points: 100,
+      assessment: 'safe',
       explanation: 'Безопасный способ.',
+      safeAction: 'Оставаться внутри сервиса.',
       riskSignals: [],
     },
     {
       stepId: 2,
+      stepNumber: 2,
+      answerType: 'option',
       optionId: 1,
       optionText: 'Проверю ссылку позже',
       points: 50,
+      assessment: 'risky',
       explanation: 'Ссылку лучше не открывать.',
-      riskSignals: ['external_link'],
+      safeAction: 'Проверять оплату только в приложении.',
+      riskSignals: [{ code: 'external_link', label: 'Внешняя ссылка' }],
     },
   ],
-  riskSignals: ['external_link'],
+  riskSignals: [{ code: 'external_link', label: 'Внешняя ссылка' }],
   safeActions: ['Оставаться внутри сервиса'],
+  feedback: {
+    reason: 'Собеседник предложил подтвердить сделку на внешней странице.',
+    riskSignals: [{ code: 'external_link', label: 'Внешняя ссылка' }],
+    safeAlternative: 'Оформите оплату и доставку только внутри сервиса.',
+  },
+  microQuestion: {
+    patternCode: 'external_link',
+    question: 'Какое действие безопаснее?',
+    options: ['Открыть ссылку и проверить', 'Проверить сделку внутри сервиса'],
+  },
   levelProgress: createPreviewTopics('buyer')[0].levels[0],
   topicId: 1,
   isTopicCompleted: false,
@@ -210,38 +313,78 @@ export const previewAchievements: Achievements = {
   earned: [
     {
       code: 'first_training',
-      title: 'Первая тренировка',
-      description: 'Пройдите первый сценарий',
-      icon: '✦',
+      title: 'Первое прохождение',
+      description: 'Завершить первое Прохождение.',
+      icon: 'star',
       earned: true,
+      earnedAt: '2026-08-08T10:00:00Z',
       current: 1,
       target: 1,
     },
     {
       code: 'perfect_score',
-      title: 'Идеальный результат',
-      description: 'Наберите 100 баллов',
-      icon: '★',
+      title: 'Без ошибки',
+      description: 'Получить 100 Баллов.',
+      icon: 'shield',
       earned: true,
+      earnedAt: '2026-08-09T10:00:00Z',
+      current: 100,
+      target: 100,
+    },
+    {
+      code: 'first_topic_completed',
+      title: 'Первая Тема',
+      description: 'Завершить первую Тему.',
+      icon: 'book',
+      earned: true,
+      earnedAt: '2026-08-09T11:00:00Z',
       current: 1,
       target: 1,
+    },
+    {
+      code: 'streak_3',
+      title: 'Серия 3 дня',
+      description: 'Заниматься три дня подряд.',
+      icon: 'flame',
+      earned: true,
+      earnedAt: '2026-08-10T11:00:00Z',
+      current: 3,
+      target: 3,
     },
   ],
   available: [
     {
+      code: 'five_trainings',
+      title: 'Пять прохождений',
+      description: 'Завершить пять Прохождений.',
+      icon: 'stack',
+      earned: false,
+      current: 3,
+      target: 5,
+    },
+    {
       code: 'all_buyer_topics',
-      title: 'Безопасный пользователь',
-      description: 'Пройдите все темы роли',
-      icon: '🛡️',
+      title: 'Покупатель: все Темы',
+      description: 'Завершить шесть Тем покупателя.',
+      icon: 'buyer',
       earned: false,
       current: 1,
       target: 6,
     },
     {
+      code: 'all_seller_topics',
+      title: 'Продавец: все Темы',
+      description: 'Завершить шесть Тем продавца.',
+      icon: 'seller',
+      earned: false,
+      current: 0,
+      target: 6,
+    },
+    {
       code: 'streak_7',
       title: 'Серия 7 дней',
-      description: 'Учитесь неделю подряд',
-      icon: '🔥',
+      description: 'Заниматься семь дней подряд.',
+      icon: 'flame',
       earned: false,
       current: 3,
       target: 7,

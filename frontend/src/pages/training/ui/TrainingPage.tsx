@@ -11,6 +11,7 @@ import { uiStyles } from '@/shared/ui-kit'
 import { parsePositiveInteger } from '@/shared/url'
 import { TrainingList } from '@/widgets/training-list'
 import type { TrainingPreview } from '../model/types'
+import { TopicSelect } from './TopicSelect'
 import styles from './TrainingPage.module.scss'
 
 export function TrainingPage({ preview }: { preview?: TrainingPreview }) {
@@ -51,19 +52,11 @@ export function TrainingPage({ preview }: { preview?: TrainingPreview }) {
         </p>
       </section>
       <div className={styles.trainingToolbar}>
-        <label className={styles.topicField}>
-          Тема тренировки
-          <select
-            value={topic.id}
-            onChange={(event) => setSearchParams({ topic: event.target.value })}
-          >
-            {topics.map((item) => (
-              <option key={item.id} value={item.id}>
-                {item.title}
-              </option>
-            ))}
-          </select>
-        </label>
+        <TopicSelect
+          topics={topics}
+          value={topic.id}
+          onChange={(topicId) => setSearchParams({ topic: String(topicId) })}
+        />
         <p>
           Показаны 4 уровня выбранной темы. Следующий уровень открывается после получения хотя бы
           одной звезды.

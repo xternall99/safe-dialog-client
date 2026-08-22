@@ -20,7 +20,7 @@ export function LessonsPage({ previewTopics }: { previewTopics?: Topic[] }) {
       <section className={uiStyles.pageHeading}>
         <p className={uiStyles.eyebrow}>Обучение</p>
         <h1>Темы для {role === 'buyer' ? 'покупателя' : 'продавца'}</h1>
-        <p className={uiStyles.muted}>Прочитайте Теорию и закрепите её коротким Quiz.</p>
+        <p className={uiStyles.muted}>Прочитайте Теорию и закрепите её коротким квизом.</p>
       </section>
       <TopicList topics={topics} basePath={isPreview ? '/preview/lessons' : '/lessons'} />
     </>
